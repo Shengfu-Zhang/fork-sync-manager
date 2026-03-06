@@ -1,0 +1,33 @@
+name: Sync All Forks
+
+on:
+  schedule:
+    - cron: '0 9 * * *'  # Daily at 9am UTC
+  workflow_dispatch:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - fork: Shengfu-Zhang/agent-sop
+            upstream: strands-agents/agent-sop
+            branch: main
+          - fork: Shengfu-Zhang/peon-ping
+            upstream: PeonPing/peon-ping
+            branch: main
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.fork }}
+          ref: ${{ matrix.branch }}
+          token: ${{ secrets.PAT }}
+
+      - name: Sync from upstream
+        run: |
+          git remote add upstream https://github.com/${{ matrix.upstream }}.git
+          git fetch upstream
+          git merge upstream/${{ matrix.branch }} --no-edit
+          git push
